@@ -19,6 +19,16 @@ import io, json, os, subprocess, sys, tempfile, urllib.request
 from PIL import Image, ImageDraw, ImageFont
 
 W, H, FPS = 1080, 1620, 30
+
+def ffmpeg_exe():
+    """System ffmpeg if present, otherwise the static build shipped with the imageio-ffmpeg package."""
+    import shutil
+    exe = os.environ.get('FFMPEG') or shutil.which('ffmpeg')
+    if exe:
+        return exe
+    import imageio_ffmpeg
+    return imageio_ffmpeg.get_ffmpeg_exe()
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 FONTS = os.path.join(HERE, 'fonts') + '/'
 PINE, CREAM, GOLD, CORAL, ARCH = (30, 58, 52), (251, 248, 242), (246, 199, 68), (228, 87, 46), (51, 82, 74)
@@ -218,7 +228,7 @@ class Video:
             n = int(self.total() * FPS)
             for i in range(n):
                 self.frame(i / FPS).save(os.path.join(tmp, 'f%04d.jpg' % i), quality=92)
-            subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-framerate', str(FPS), '-i', os.path.join(tmp, 'f%04d.jpg'),
+            subprocess.run([ffmpeg_exe(), '-y', '-loglevel', 'error', '-framerate', str(FPS), '-i', os.path.join(tmp, 'f%04d.jpg'),
                             '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '20', '-preset', 'slow', '-movflags', '+faststart', out_path], check=True)
 
 

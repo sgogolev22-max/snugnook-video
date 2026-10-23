@@ -1,0 +1,31 @@
+name: Site check
+
+# Opens thesnugnook.com every 30 minutes. If the home page does not answer with 200
+# three times in a row (a minute apart), the run fails and GitHub emails the repo owner.
+on:
+  schedule:
+    - cron: '7,37 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: site-check
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Open thesnugnook.com
+        run: |
+          code=000
+          for i in 1 2 3; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 -A 'snugnook-uptime/1.0 (+https://github.com/sgogolev22-max/snugnook-video)' https://thesnugnook.com/ || echo 000)
+            echo "try $i: HTTP $code"
+            if [ "$code" = "200" ]; then exit 0; fi
+            sleep 60
+          done
+          echo "::error::thesnugnook.com did not answer with 200 three times in a row (last: HTTP $code)"
+          exit 1

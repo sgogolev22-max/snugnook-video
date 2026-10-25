@@ -1,7 +1,7 @@
 name: Site check
 
-# Opens thesnugnook.com every 30 minutes. If the home page does not answer with 200
-# three times in a row (a minute apart), the run fails and GitHub emails the repo owner.
+# Opens thesnugnook.com and thefreshnook.com every 30 minutes. If a home page does not answer
+# with 200 three times in a row (a minute apart), that job fails and GitHub emails the repo owner.
 on:
   schedule:
     - cron: '7,37 * * * *'
@@ -17,15 +17,21 @@ jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 6
+    strategy:
+      fail-fast: false
+      matrix:
+        site: [thesnugnook.com, thefreshnook.com]
     steps:
-      - name: Open thesnugnook.com
+      - name: Open ${{ matrix.site }}
+        env:
+          SITE: ${{ matrix.site }}
         run: |
           code=000
           for i in 1 2 3; do
-            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 -A 'snugnook-uptime/1.0 (+https://github.com/sgogolev22-max/snugnook-video)' https://thesnugnook.com/ || echo 000)
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 -A 'nook-uptime/1.0 (+https://github.com/sgogolev22-max/snugnook-video)' "https://$SITE/" || echo 000)
             echo "try $i: HTTP $code"
             if [ "$code" = "200" ]; then exit 0; fi
             sleep 60
           done
-          echo "::error::thesnugnook.com did not answer with 200 three times in a row (last: HTTP $code)"
+          echo "::error::$SITE did not answer with 200 three times in a row (last: HTTP $code)"
           exit 1

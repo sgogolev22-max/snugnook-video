@@ -34,9 +34,13 @@ jobs:
             gh release view videos >/dev/null 2>&1 || gh release create videos --title "Video pins" --notes "Rendered video pins for thesnugnook.com"
             gh release upload videos out/*.mp4 --clobber
           fi
+          if ls out-fresh/*.mp4 >/dev/null 2>&1; then
+            gh release view fresh-videos >/dev/null 2>&1 || gh release create fresh-videos --title "Fresh Nook video pins" --notes "Rendered video pins for thefreshnook.com"
+            gh release upload fresh-videos out-fresh/*.mp4 --clobber
+          fi
       - name: Save progress
         run: |
           git config user.name "snugnook-video"
           git config user.email "snugnook-video@users.noreply.github.com"
-          git add done.json
+          git add done.json done-fresh.json
           git diff --cached --quiet || (git commit -m "Rendered video pins" && git push)

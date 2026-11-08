@@ -44,3 +44,23 @@ jobs:
           git config user.email "snugnook-video@users.noreply.github.com"
           git add done.json done-fresh.json
           git diff --cached --quiet || (git commit -m "Rendered video pins" && git push)
+      # Pinterest cannot always download the MP4 from the sites or from the release (redirect, octet-stream),
+      # so every release file is mirrored to GitHub Pages: a plain HTTPS URL served as video/mp4.
+      #   https://<owner>.github.io/<repo>/fresh/video-<id>.mp4   (Fresh Nook)
+      #   https://<owner>.github.io/<repo>/snug/video-<id>.mp4    (Snug Nook)
+      - name: Mirror videos to GitHub Pages (gh-pages branch)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          rm -rf pages && mkdir pages && cd pages
+          git init -q
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git fetch -q --depth 1 origin gh-pages; then git checkout -q -b gh-pages FETCH_HEAD; else git checkout -q --orphan gh-pages; fi
+          mkdir -p fresh snug
+          touch .nojekyll
+          gh release download fresh-videos -p 'video-*.mp4' -D fresh --skip-existing -R "$GITHUB_REPOSITORY" || true
+          gh release download videos -p 'video-*.mp4' -D snug --skip-existing -R "$GITHUB_REPOSITORY" || true
+          printf '<!doctype html><title>Nook video pins</title><p>Video files for thesnugnook.com and thefreshnook.com Pinterest pins.</p>\n' > index.html
+          git add -A
+          git -c user.name=snugnook-video -c user.email=snugnook-video@users.noreply.github.com commit -q -m "Mirror video files" || exit 0
+          git push -q origin gh-pages

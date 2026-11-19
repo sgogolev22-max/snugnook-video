@@ -253,7 +253,17 @@ class BoldVideo:
 
 
 def make(site):
-    return type('Video', (BoldVideo,), {'site': site})
+    bold = type('Video', (BoldVideo,), {'site': site})
+
+    def Video(spec):
+        # 19.11.2026: carousel of finished infographic slides (carousel_video.py). The sites keep their spec shape
+        # (hero + up to 4 slides), so kicker "carousel" marks it: hero = cover slide, slides = the next slides.
+        if spec.get('frames') or str(spec.get('kicker', '')).strip().lower() == 'carousel':
+            from carousel_video import CarouselVideo
+            frames = spec.get('frames') or [spec.get('hero')] + [x.get('image') for x in spec.get('slides') or []]
+            return CarouselVideo({'frames': frames, 'seconds': spec.get('seconds') or 3.0})
+        return bold(spec)
+    return Video
 
 
 if __name__ == '__main__':

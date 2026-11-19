@@ -8,4 +8,5 @@ Renders short video pins (1080×1620 MP4) for [thesnugnook.com](https://thesnugn
   **videos** and **fresh-videos** releases.
 - Each site then downloads its finished files into its own uploads folder.
 - A second workflow checks both home pages every 30 minutes and emails the owner if one is down.
+- Carousel videos (`carousel_video.py`): when a spec has `kicker: "carousel"`, the hero and slide pictures are finished infographic slides shown 3 s each with a slow zoom.
 - Fonts: Bricolage Grotesque, Figtree, Caveat, Fraunces, Inter (SIL Open Font License, see `fonts/`).

@@ -1,5 +1,5 @@
 """Carousel video pins (1080x1620 MP4): a row of finished slides, each a full 2:3 picture
-(cover, one slide per tip, end slide), shown one after another with a slow zoom and a soft cross-fade.
+(cover, one slide per tip, end slide), shown one after another with a very slow zoom (2%) and a soft cross-fade.
 The slides are drawn by the sites' infographic robot in the same style as the infographic pins.
 
 Spec:
@@ -37,16 +37,15 @@ class CarouselVideo:
 
     @staticmethod
     def fit(img):
-        # Cover 1080x1620 with a 6% margin so the slow zoom never shows an edge.
-        s = max(W / img.width, H / img.height) * 1.06
+        # Cover 1080x1620 exactly: the slides are already 2:3, so nothing is cut off at the start.
+        s = max(W / img.width, H / img.height)
         return img.resize((int(img.width * s) + 1, int(img.height * s) + 1), Image.LANCZOS)
 
     def shot(self, i, t):
-        # Slow zoom from 100% to 106% of the slide, centred: the visible window shrinks from the full
-        # 1080x1620 cover area (img / 1.06) to img / 1.06 / 1.06.
+        # Very slow zoom from 100% to 102%, centred, so text at the slide edges stays readable.
         img = self.frames[i]
-        z = 1.0 + 0.06 * ease(t / self.sec)
-        cw, ch = img.width / 1.06 / z * 1.0, img.height / 1.06 / z
+        z = 1.0 + 0.02 * ease(t / self.sec)
+        cw, ch = img.width / z, img.height / z
         x, y = (img.width - cw) / 2, (img.height - ch) / 2
         return img.crop((int(x), int(y), int(x + cw), int(y + ch))).resize((W, H), Image.BILINEAR)
 
